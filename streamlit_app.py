@@ -1,34 +1,35 @@
 import streamlit as st
-import pandas as pd
+import keras
 import joblib
-from tensorflow.keras.models import load_model
+import numpy as np
 
-# Load model and scaler
-model = load_model("model.keras")
-scaler = joblib.load("scaler.pkl")
+def load_model_and_scalers():
+    model = keras.models.load_model('agrifood_co2_emissions_model_v2.keras')
+    feature_scaler = joblib.load('feature_scaler.pkl')
+    target_scaler = joblib.load('target_scaler.pkl')
+    return model, feature_scaler, target_scaler
 
-st.title("🌱 Agri-Food CO₂ Emissions Predictor")
-st.write("Upload a CSV file with input features to predict emissions.")
+model, feature_scaler, target_scaler = load_model_and_scalers()
 
-# File uploader
-uploaded_file = st.file_uploader("Upload your input CSV file", type=["csv"])
+# Example prediction function
+def make_prediction(input_data):
+    # Scale the input features
+    scaled_features = feature_scaler.transform(input_data)
+    
+    # Make prediction
+    scaled_prediction = model.predict(scaled_features)
+    
+    # Inverse transform to get actual values
+    actual_prediction = target_scaler.inverse_transform(scaled_prediction)
+    
+    return actual_prediction
 
-if uploaded_file is not None:
-    input_df = pd.read_csv(uploaded_file)
-    st.write("### Preview of uploaded data:")
-    st.dataframe(input_df.head())
+# Streamlit app
+st.title("AgriFood CO2 Emissions Prediction")
 
-    # Preprocess
-    input_scaled = scaler.transform(input_df)
-
-    # Predict
-    predictions = model.predict(input_scaled)
-
-    # Display predictions
-    st.write("### Predicted CO₂ Emissions:")
-    input_df["Predicted Emissions"] = predictions
-    st.dataframe(input_df)
-
-    # Optional: download
-    csv = input_df.to_csv(index=False).encode('utf-8')
-    st.download_button("📥 Download predictions as CSV", csv, "predictions.csv", "text/csv")
+# Add your input widgets here
+#For example:
+input_value = st.number_input("Enter feature value:")
+if st.button("Predict"):
+    prediction = make_prediction([[input_value]])
+    st.write(f"Predicted CO2 Emissions: {prediction[0][0]}")
