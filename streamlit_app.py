@@ -5,7 +5,7 @@ import joblib
 from tensorflow.keras.models import load_model
 
 # Load the model and scalers
-model = load_model('emission_model.keras')
+model = load_model('emission_model.h5')
 scaler_data = joblib.load('scalers.pkl')
 feature_scaler = scaler_data['feature_scaler']
 target_scaler = scaler_data['target_scaler']
